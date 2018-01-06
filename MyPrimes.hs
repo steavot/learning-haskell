@@ -2,6 +2,14 @@
 -- Using the example of prime numbers to exercise concepts.
 -- As a better way to do something appears, I will prime the previously
 -- working function (or comment out if it's only a section of a function.)
+module MyPrimes
+( isPrime
+, primesAbove
+, firstNPrimes
+, nthPrime
+, nextPrimeAbove
+ ) where
+
 import Data.List
 
 -- function to tell if all elements of a boolean array are false
@@ -24,7 +32,7 @@ isPrime n
     -- | otherwise = allFalse' (map (==0) (map (n `mod`) [2..sqrtInt' n]))
 
 -- infinite list of all primes above a number
-primesAbove = \n -> [x | x <- [n..], isPrime' x]
+primesAbove = \n -> [x | x <- [n..], isPrime x]
 
 -- first n primes
 firstNPrimes :: Int -> [Int]
