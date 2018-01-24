@@ -14,7 +14,6 @@ import Data.List
 
 -- function to tell if all elements of a boolean array are false
 allFalse = all (==False)
-allFalse' = not . foldl1 (||)
 
 -- function to do sqrt for Ints
 sqrtInt :: Int -> Int
