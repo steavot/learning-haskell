@@ -15,7 +15,7 @@ import MyLines
 --   or just plain text.
 --
 -- OK for now let's assume that a character must be one of the five.
--- And those five format types have an order of precedance from left to right
+-- And those five format types have an order of precedence from left to right
 -- in the typeclass below.
 data FormattedChar = Code Char | Strike Char | Bold Char | Italic Char | Plain Char deriving(Eq, Show)
 type FLine = [FormattedChar]
@@ -27,10 +27,22 @@ type FLine = [FormattedChar]
 --   And so on...
 parseMd :: String -> FLine
 parseMd lyne =
-    let a = zip [1..] . splitOnElem '`' $ lyne
-        sbip = map Plain
-        csbip = (\(x,y)->if x `mod` 2 == 0 then map Code y else sbip y)
-    in foldl (++) [] . map csbip $ a
+    let c' = '`'
+        s' = '~'
+        b' = '*'
+        i' = '_'
+        -- a, produces and enumerated list of strings created from seperating
+        -- a string on the formatting characters above.
+        a :: Char -> String -> [(Int, String)]
+        a c l = zip [1..] . splitOnElem c $ l
+
+        -- reading from the bottom we want to either format the character as a
+        -- type or pass it along the order of precedence.
+        ip    = (\(x,y)->if x `mod` 2 == 0 then map Italic y else map Plain y)
+        bip   = (\(x,y)->if x `mod` 2 == 0 then map Bold y   else foldl (++) [] . map ip . a i' $ y)
+        sbip  = (\(x,y)->if x `mod` 2 == 0 then map Strike y else foldl (++) [] . map bip . a b' $ y)
+        csbip = (\(x,y)->if x `mod` 2 == 0 then map Code y   else foldl (++) [] . map sbip . a s' $ y)
+    in foldl (++) [] . map csbip . a c' $ lyne
 
 -- mdText :: FLine -> String
 
