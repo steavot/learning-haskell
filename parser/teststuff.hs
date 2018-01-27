@@ -6,3 +6,6 @@ theCharOf (Bold y) = y
 theCharOf (Italic y) = y
 theCharOf (Plain y) = y
 
+whichChar :: FormattedChar -> FormattedChar -> String
+whichChar (Plain x) (Plain y) = x:[]
+

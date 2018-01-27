@@ -44,7 +44,6 @@ mdText fline =
     let makeText :: FLine -> (FormattedChar, String)
 	addChars :: (FormattedChar, String) -> FormattedChar-> (FormattedChar, String)
         whichChars :: FormattedChar -> FormattedChar -> String
-	typeOf :: FormattedChar -> Char
 	theCharOf :: FormattedChar -> Char
 
 	theCharOf (Code y) = y
@@ -53,34 +52,35 @@ mdText fline =
         theCharOf (Italic y) = y
         theCharOf (Plain y) = y
 
-        typeOf Code = 'c'
-	typeOf Strike = 's'
-	typeOf Bold = 'b'
-	typeOf Italic = 'i'
-	typeOf Plain = 'p'
+	whichChars (Plain a) (Plain b) = (theCharOf x):[]
+	whichChars (Plain a) (Code b) = (theCharOf x):'`'
+	whichChars (Plain a) (Stike b) = (theCharOf x):'~'
+	whichChars (Plain a) (Bold b) = (theCharOf x):'*'
+	whichChars (Plain a) (Italic b) = (theCharOf x):'_'
 
-	whichChars l x
-          | typeOf l == typeOf x               = (theCharOf x):[]
-	  | typeOf l == 'p' && typeOf x == 'c' = (theCharOf x):'`'
-          | typeOf l == 'p' && typeOf x == 's' = (theCharOf x):'~'
-          | typeOf l == 'p' && typeOf x == 'b' = (theCharOf x):'*'
-	  | typeOf l == 'p' && typeOf x == 'i' = (theCharOf x):'_'
-	  | typeOf l == 'c' && typeOf x == 'p' = (theCharOf x):'`'
-	  | typeOf l == 'c' && typeOf x == 's' = (theCharOf x):'~':'`'
-	  | typeOf l == 'c' && typeOf x == 'b' = (theCharOf x):'*':'`'
-	  | typeOf l == 'c' && typeOf x == 'i' = (theCharOf x):'_':'`'
-	  | typeOf l == 's' && typeOf x == 'p' = (theCharOf x):'~'
-	  | typeOf l == 's' && typeOf x == 'c' = (theCharOf x):'`':'~'
-	  | typeOf l == 's' && typeOf x == 'b' = (theCharOf x):'*':'~'
-	  | typeOf l == 's' && typeOf x == 'i' = (theCharOf x):'_':'~'
-	  | typeOf l == 'b' && typeOf x == 'p' = (theCharOf x):'*'
-	  | typeOf l == 'b' && typeOf x == 'c' = (theCharOf x):'`':'*'
-	  | typeOf l == 'b' && typeOf x == 's' = (theCharOf x):'~':'*'
-	  | typeOf l == 'b' && typeOf x == 'i' = (theCharOf x):'_':'*'
-	  | typeOf l == 'i' && typeOf x == 'p' = (theCharOf x):'_'
-	  | typeOf l == 'i' && typeOf x == 'c' = (theCharOf x):'`':'_'
-	  | typeOf l == 'i' && typeOf x == 's' = (theCharOf x):'~':'_'
-	  | typeOf l == 'i' && typeOf x == 'b' = (theCharOf x):'*':'_'
+	whichChars (Code a) (Code b) = (theCharOf x):[]
+	whichChars (Code a) (Plain b) = (theCharOf x):'`'
+	whichChars (Code a) (Stike b) = (theCharOf x):'~':'`'
+	whichChars (Code a)= (theCharOf x):'*':'`'
+	whichChars (Code a)= (theCharOf x):'_':'`'
+
+	whichChars (Strike a) (Strike b) = (theCharOf x):[]
+	whichChars (Strike a) (Plain b) = (theCharOf x):'~'
+	whichChars (Strike a) (Code b) = (theCharOf x):'`':'~'
+	whichChars (Strike a)= (theCharOf x):'*':'~'
+	whichChars (Strike a)= (theCharOf x):'_':'~'
+
+	whichChars (Bold a) (Bold b) = (theCharOf x):[]
+	whichChars (Bold a) (Plain b) = (theCharOf x):'*'
+	whichChars (Bold a) (Code b) = (theCharOf x):'`':'*'
+	whichChars (Bold a) (Stike b) = (theCharOf x):'~':'*'
+	whichChars (Bold a) (Italic b) = (theCharOf x):'_':'*'
+
+	whichChars (Italic a) (Italic b) = (theCharOf x):[]
+	whichChars (Italic a) (Plain b) = (theCharOf x):'_'
+	whichChars (Italic a) (Code b) = (theCharOf x):'`':'_'
+	whichChars (Italic a) (Stike b) = (theCharOf x):'~':'_'
+	whichChars (Italic a) (Italic b) = (theCharOf x):'*':'_'
 
 	addChars (lastx, lyne) x = (x, (whichChars lastx x) ++ lyne)
 
