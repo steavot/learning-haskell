@@ -4,7 +4,6 @@
 -- working function (or comment out if it's only a section of a function.)
 module MyPrimes
 ( isPrime
-, primesAbove
 , firstNPrimes
 , nthPrime
 , nextPrimeAbove
