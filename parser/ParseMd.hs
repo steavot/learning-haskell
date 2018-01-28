@@ -2,6 +2,8 @@ module ParseMd
 ( FormattedChar(..)
 , FLine
 , parseMd
+, mdText
+, htmlText
  ) where
 
 import Data.List
@@ -35,57 +37,85 @@ parseMd lyne =
 
     in formatFor csbip c' lyne
 
--- This needs to fold over an FLine and put in the special characters where needed and
--- output the line of text.
 mdText :: FLine -> String
 mdText fline =
-    -- addCharscter will fold over the FLine and build up the line of text while recording
-    -- the most recent type constructor encountered.
-    let makeText :: FLine -> (FormattedChar, String)
-	addChars :: (FormattedChar, String) -> FormattedChar-> (FormattedChar, String)
-        whichChars :: FormattedChar -> FormattedChar -> String
-	theCharOf :: FormattedChar -> Char
+    let whichChars :: FormattedChar -> FormattedChar -> String
+        whichChars (Plain a) (Plain b) = b:[]
+        whichChars (Plain a) (Code b) = b:'`':[]
+        whichChars (Plain a) (Strike b) = b:'~':[]
+        whichChars (Plain a) (Bold b) = b:'*':[]
+        whichChars (Plain a) (Italic b) = b:'_':[]
 
-	theCharOf (Code y) = y
-        theCharOf (Strike y) = y
-        theCharOf (Bold y) = y
-        theCharOf (Italic y) = y
-        theCharOf (Plain y) = y
+        whichChars (Code a) (Code b) = b:[]
+        whichChars (Code a) (Plain b) = b:'`':[]
+        whichChars (Code a) (Strike b) = b:'~':'`':[]
+        whichChars (Code a) (Bold b) = b:'*':'`':[]
+        whichChars (Code a) (Italic b) = b:'_':'`':[]
 
-	whichChars (Plain a) (Plain b) = (theCharOf x):[]
-	whichChars (Plain a) (Code b) = (theCharOf x):'`'
-	whichChars (Plain a) (Stike b) = (theCharOf x):'~'
-	whichChars (Plain a) (Bold b) = (theCharOf x):'*'
-	whichChars (Plain a) (Italic b) = (theCharOf x):'_'
+        whichChars (Strike a) (Strike b) = b:[]
+        whichChars (Strike a) (Plain b) = b:'~':[]
+        whichChars (Strike a) (Code b) = b:'`':'~':[]
+        whichChars (Strike a) (Bold b) = b:'*':'~':[]
+        whichChars (Strike a) (Italic b) = b:'_':'~':[]
 
-	whichChars (Code a) (Code b) = (theCharOf x):[]
-	whichChars (Code a) (Plain b) = (theCharOf x):'`'
-	whichChars (Code a) (Stike b) = (theCharOf x):'~':'`'
-	whichChars (Code a)= (theCharOf x):'*':'`'
-	whichChars (Code a)= (theCharOf x):'_':'`'
+        whichChars (Bold a) (Bold b) = b:[]
+        whichChars (Bold a) (Plain b) = b:'*':[]
+        whichChars (Bold a) (Code b) = b:'`':'*':[]
+        whichChars (Bold a) (Strike b) = b:'~':'*':[]
+        whichChars (Bold a) (Italic b) = b:'_':'*':[]
 
-	whichChars (Strike a) (Strike b) = (theCharOf x):[]
-	whichChars (Strike a) (Plain b) = (theCharOf x):'~'
-	whichChars (Strike a) (Code b) = (theCharOf x):'`':'~'
-	whichChars (Strike a)= (theCharOf x):'*':'~'
-	whichChars (Strike a)= (theCharOf x):'_':'~'
+        whichChars (Italic a) (Italic b) = b:[]
+        whichChars (Italic a) (Plain b) = b:'_':[]
+        whichChars (Italic a) (Code b) = b:'`':'_':[]
+        whichChars (Italic a) (Strike b) = b:'~':'_':[]
+        whichChars (Italic a) (Bold b) = b:'*':'_':[]
 
-	whichChars (Bold a) (Bold b) = (theCharOf x):[]
-	whichChars (Bold a) (Plain b) = (theCharOf x):'*'
-	whichChars (Bold a) (Code b) = (theCharOf x):'`':'*'
-	whichChars (Bold a) (Stike b) = (theCharOf x):'~':'*'
-	whichChars (Bold a) (Italic b) = (theCharOf x):'_':'*'
+        addChars :: FormattedChar -> (FormattedChar, String) -> (FormattedChar, String)
+        addChars x (lastx, lyne) = (x, (whichChars lastx x) ++ lyne)
 
-	whichChars (Italic a) (Italic b) = (theCharOf x):[]
-	whichChars (Italic a) (Plain b) = (theCharOf x):'_'
-	whichChars (Italic a) (Code b) = (theCharOf x):'`':'_'
-	whichChars (Italic a) (Stike b) = (theCharOf x):'~':'_'
-	whichChars (Italic a) (Italic b) = (theCharOf x):'*':'_'
+        makeText :: FLine -> (FormattedChar, String)
+        makeText = foldr addChars (Plain 'a', "")
 
-	addChars (lastx, lyne) x = (x, (whichChars lastx x) ++ lyne)
+  in snd . makeText $ fline
 
-        accumulator = (Plain '', "")
-	makeText = foldr addChars accumulator
+htmlText :: FLine -> String
+htmlText fline =
+    let whichChars :: FormattedChar -> FormattedChar -> String
+        whichChars (Plain a) (Plain b) = b:[]
+        whichChars (Plain a) (Code b) = b:'<':'/':'t':'t':'>':[]
+        whichChars (Plain a) (Strike b) = b:'<':'/':'s':'t':'r':'i':'k':'e':'>':[]
+        whichChars (Plain a) (Bold b) = b:'<':'/':'b':'>':[]
+        whichChars (Plain a) (Italic b) = b:'<':'/':'i':'>':[]
+
+        whichChars (Code a) (Code b) = b:[]
+        whichChars (Code a) (Plain b) = b:'<':'t':'t':'>':[]
+        whichChars (Code a) (Strike b) = b:'<':'/':'s':'t':'r':'i':'k':'e':'>':'<':'t':'t':'>':[]
+        whichChars (Code a) (Bold b) = b:'<':'/':'b':'>':'<':'t':'t':'>':[]
+        whichChars (Code a) (Italic b) = b:'<':'/':'i':'>':'<':'t':'t':'>':[]
+
+        whichChars (Strike a) (Strike b) = b:[]
+        whichChars (Strike a) (Plain b) = b:'<':'s':'t':'r':'i':'k':'e':'>':[]
+        whichChars (Strike a) (Code b) = b:'<':'/':'t':'t':'>':'<':'s':'t':'r':'i':'k':'e':'>':[]
+        whichChars (Strike a) (Bold b) = b:'<':'/':'b':'>':'<':'s':'t':'r':'i':'k':'e':'>':[]
+        whichChars (Strike a) (Italic b) = b:'<':'/':'i':'>':'<':'s':'t':'r':'i':'k':'e':'>':[]
+
+        whichChars (Bold a) (Bold b) = b:[]
+        whichChars (Bold a) (Plain b) = b:'<':'b':'>':[]
+        whichChars (Bold a) (Code b) = b:'<':'/':'t':'t':'>':'<':'b':'>':[]
+        whichChars (Bold a) (Strike b) = b:'<':'/':'s':'t':'r':'i':'k':'e':'>':'`':'<':'b':'>':[]
+        whichChars (Bold a) (Italic b) = b:'<':'/':'i':'>':'<':'b':'>':[]
+
+        whichChars (Italic a) (Italic b) = b:[]
+        whichChars (Italic a) (Plain b) = b:'<':'i':'>':[]
+        whichChars (Italic a) (Code b) = b:'<':'/':'t':'t':'>':'<':'i':'>':[]
+        whichChars (Italic a) (Strike b) = b:'<':'/':'s':'t':'r':'i':'k':'e':'>':'`':'<':'i':'>':[]
+        whichChars (Italic a) (Bold b) = b:'<':'/':'b':'>':'<':'i':'>':[]
+
+        addChars :: FormattedChar -> (FormattedChar, String) -> (FormattedChar, String)
+        addChars x (lastx, lyne) = (x, (whichChars lastx x) ++ lyne)
+
+        makeText :: FLine -> (FormattedChar, String)
+        makeText = foldr addChars (Plain 'a', "")
 
   in snd . makeText $ fline
 
