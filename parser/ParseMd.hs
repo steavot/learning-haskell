@@ -4,7 +4,7 @@ module ParseMd
 , parseMd
 , mdText
 , htmlText
- ) where
+) where
 
 import Data.List
 import MyLines
@@ -35,7 +35,7 @@ parseMd lyne =
         sbip  = (\(x,y)->if x `mod` 2 == 0 then map Strike y else formatFor bip b' y)
         csbip = (\(x,y)->if x `mod` 2 == 0 then map Code y   else formatFor sbip s' y)
 
-    in formatFor csbip c' lyne
+     in formatFor csbip c' lyne
 
 mdText :: FLine -> String
 mdText fline =
@@ -76,7 +76,7 @@ mdText fline =
         makeText :: FLine -> (FormattedChar, String)
         makeText = foldr addChars (Plain 'a', "")
 
-  in snd . makeText $ fline
+     in snd . makeText $ fline
 
 htmlText :: FLine -> String
 htmlText fline =
@@ -117,5 +117,5 @@ htmlText fline =
         makeText :: FLine -> (FormattedChar, String)
         makeText = foldr addChars (Plain 'a', "")
 
-  in snd . makeText $ fline
+     in snd . makeText $ fline
 

@@ -2,4 +2,6 @@ temp*
 Data*
 *.swp
 .*.swp
+*.o
+*.hi
 
