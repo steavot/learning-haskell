@@ -25,22 +25,22 @@ solveRPN = head . foldl foldingFunction [] . words
 -- for our purposes we want just the 1st 4 operators, and we want our evaluation to fail if the value
 -- on the top of the stack becomes either negative or a fraction
 -- As our inputs for this are always from the lists above we do not need to worry about:
---   division by zero
 --   addition resulting in a negative
 --   multiplication resulting in a negative
 -- Therefore the calculations that can fail are:
+--   division by zero (this is covered by not allowing subtraction of equal numbers)
 --   division resulting in a fraction
 --   subtraction resulting in a negative
 countdownRPN :: String -> Maybe Int
 countdownRPN = head . foldl foldingFunction [] . words
     where foldingFunction (x:y:ys) "*" = (x * y):ys
           foldingFunction (x:y:ys) "+" = (x + y):ys
-          foldingFunction (x:y:ys) "-" = (y `countdownSub` x):ys
-          foldingFunction (x:y:ys) "/" = (y `countdownDiv` x):ys
+          foldingFunction (x:y:ys) "-" = if y > x then Just (y - x):ys else Nothing
+          foldingFunction (x:y:ys) "/" = if y `mod` x == 0 then Just (y / x):ys else Nothing
           foldingFunction xs numberString = read numberString:xs
+          foldingFunction Nothing _ = Nothing
 
-countdownDiv :: Maybe Int -> Maybe Int -> Maybe Int
-
-countdownSub :: Maybe Int -> Maybe Int -> Maybe Int
+foldingFunction :: Maybe [Int] -> String -> Maybe [Int]
 
 -- Axiom: all RPN strings can be rearranged to "number number ... operator operator..."
+
