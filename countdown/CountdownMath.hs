@@ -32,7 +32,7 @@ solveRPN = head . foldl foldingFunction [] . words
 --   division resulting in a fraction
 --   subtraction resulting in a negative
 countdownRPN :: String -> Maybe Int
-countdownRPN = head . foldl foldingFunction (Just []) . words
+countdownRPN = fmap head (foldl foldingFunction (Just [])) . words
     where foldingFunction :: Maybe [Int] -> String -> Maybe [Int]
           foldingFunction (Just (x:y:ys)) "*" = Just ((x * y):ys)
           foldingFunction (Just (x:y:ys)) "+" = Just ((x + y):ys)
@@ -42,5 +42,5 @@ countdownRPN = head . foldl foldingFunction (Just []) . words
           foldingFunction Nothing _ = Nothing
 
 
--- Axiom: all RPN strings can be rearranged to "number number ... operator operator..."
+-- all RPN strings can be rearranged to "number number ... operator operator..."
 
