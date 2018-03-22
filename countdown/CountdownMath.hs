@@ -32,15 +32,15 @@ solveRPN = head . foldl foldingFunction [] . words
 --   division resulting in a fraction
 --   subtraction resulting in a negative
 countdownRPN :: String -> Maybe Int
-countdownRPN = head . foldl foldingFunction [] . words
-    where foldingFunction (x:y:ys) "*" = (x * y):ys
-          foldingFunction (x:y:ys) "+" = (x + y):ys
-          foldingFunction (x:y:ys) "-" = if y > x then Just (y - x):ys else Nothing
-          foldingFunction (x:y:ys) "/" = if y `mod` x == 0 then Just (y / x):ys else Nothing
-          foldingFunction xs numberString = read numberString:xs
+countdownRPN = head . foldl foldingFunction (Just []) . words
+    where foldingFunction :: Maybe [Int] -> String -> Maybe [Int]
+          foldingFunction (Just (x:y:ys)) "*" = Just ((x * y):ys)
+          foldingFunction (Just (x:y:ys)) "+" = Just ((x + y):ys)
+          foldingFunction (Just (x:y:ys)) "-" = if y > x then Just ((y - x):ys) else Nothing
+          foldingFunction (Just (x:y:ys)) "/" = if y `mod` x == 0 then Just ((y / x):ys) else Nothing
+          foldingFunction (Just xs) numberString = Just (read numberString:xs)
           foldingFunction Nothing _ = Nothing
 
-foldingFunction :: Maybe [Int] -> String -> Maybe [Int]
 
 -- Axiom: all RPN strings can be rearranged to "number number ... operator operator..."
 
