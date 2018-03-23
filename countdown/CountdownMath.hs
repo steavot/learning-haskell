@@ -52,7 +52,8 @@ countdownRPN = fmap head . (foldl foldingFunction (Just [])) . words
 -- Countdown maths problem doesn't require all the numbers are used.  The minimum we can use is 2.
 -- We need to also consider all the combinations of not all the tiles being used.
 allRPNs :: [String] -> [String]
-allRPNs = concat . fmap rpnPermutations . init . init . tails
+allRPNs tiles = concat . fmap rpnPermutations . tileCombines $ tiles
+  where tileCombines tiles = [ t | t <- subsequences tiles, length t > 1]
 
 rpnPermutations :: [String] -> [String]
 rpnPermutations tiles = (++) <$> (tilePerms tiles) <*> (operatorPerms . length $ tiles)
