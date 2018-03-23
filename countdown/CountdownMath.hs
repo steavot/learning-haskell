@@ -14,6 +14,7 @@ module CountdownMath
 ) where
 
 import Data.List
+import GHC.Exts
 
 -- below is the RPN evaluator from Learn You A Haskell
 solveRPN :: String -> Float
@@ -53,7 +54,7 @@ countdownRPN = fmap head . (foldl foldingFunction (Just [])) . words
 -- We need to also consider all the combinations of not all the tiles being used.
 allRPNs :: [String] -> [String]
 allRPNs tiles = concat . fmap rpnPermutations . tileCombines $ tiles
-  where tileCombines tiles = [ t | t <- subsequences tiles, length t > 1]
+  where tileCombines tiles = sortWith length [t | t <- subsequences tiles, length t > 1]
 
 rpnPermutations :: [String] -> [String]
 rpnPermutations tiles = (++) <$> (tilePerms tiles) <*> (operatorPerms . length $ tiles)
