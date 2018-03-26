@@ -7,10 +7,11 @@
 module CountdownMath
 ( countdownRPN
 , operatorPerms
-, tilePerms
+, combineOpsAndTiles
 , rpnPermutations
 , allRPNs
 , getASolution
+, getAllSolutions
 ) where
 
 import Data.List
@@ -40,27 +41,32 @@ solveRPN = head . foldl foldingFunction [] . words
 countdownRPN :: String -> Maybe Int
 countdownRPN = fmap head . (foldl foldingFunction (Just [])) . words
     where foldingFunction :: Maybe [Int] -> String -> Maybe [Int]
+          foldingFunction Nothing _ = Nothing
+          foldingFunction (Just []) "*" = Nothing
+          foldingFunction (Just []) "+" = Nothing
+          foldingFunction (Just []) "-" = Nothing
+          foldingFunction (Just []) "/" = Nothing
+          foldingFunction (Just [x]) "*" = Nothing
+          foldingFunction (Just [x]) "+" = Nothing
+          foldingFunction (Just [x]) "-" = Nothing
+          foldingFunction (Just [x]) "/" = Nothing
           foldingFunction (Just (x:y:ys)) "*" = Just ((x * y):ys)
           foldingFunction (Just (x:y:ys)) "+" = Just ((x + y):ys)
           foldingFunction (Just (x:y:ys)) "-" = if y > x then Just ((y - x):ys) else Nothing
           foldingFunction (Just (x:y:ys)) "/" = if y `mod` x == 0 then Just ((y `div` x):ys) else Nothing
-          foldingFunction (Just xs) numberString = Just (read numberString:xs)
-          foldingFunction Nothing _ = Nothing
-
--- all RPN strings can be rearranged to "number number ... operator operator..."
--- We want something that will produce a list of all the possible RPN strings.
+          foldingFunction (Just xs) numberString = Just ((read numberString :: Int):xs)
 
 -- Countdown maths problem doesn't require all the numbers are used.  The minimum we can use is 2.
 -- We need to also consider all the combinations of not all the tiles being used.
 allRPNs :: [String] -> [String]
-allRPNs tiles = concat . fmap rpnPermutations . tileCombines $ tiles
+allRPNs tiles = nub . concat . fmap rpnPermutations . tileCombines $ tiles
   where tileCombines tiles = sortWith length [t | t <- subsequences tiles, length t > 1]
 
 rpnPermutations :: [String] -> [String]
-rpnPermutations tiles = (++) <$> (tilePerms tiles) <*> (operatorPerms . length $ tiles)
+rpnPermutations tiles = concat (fmap (combineOpsAndTiles tiles) (operatorPerms . length $ tiles))
 
-tilePerms :: [String] -> [String]
-tilePerms = addSpaces . fmap unwords . permutations
+combineOpsAndTiles :: [String] -> String -> [String]
+combineOpsAndTiles tiles ops = fmap unwords . permutations $ (tiles ++ (words ops))
 
 -- operatorPerms. Given a number we want to produce every combination of +,-,*,/ that is that number long minus 1.
 -- As we know this number will be between 2 and 6, we can be lazy
