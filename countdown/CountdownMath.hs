@@ -1,9 +1,9 @@
--- module of functions that say whether the target number can be made from the inputs and only operators +-*/
--- inputs: up to 4 from [25, 50, 75, 100] and the rest from
+-- Module of functions that say whether the target number can be made from the inputs and only operators +-*/
+-- Inputs: up to 4 from [25, 50, 75, 100] and the rest from
 -- [1, 1, 2 , 2 , 3 , 3 , 4 , 4 , 5 , 5 , 6 , 6 , 7 , 7 , 8 , 8 , 9 , 9 , 10 , 10] to make 6 numbers in total.
--- target is a random integer between [101, 999]
--- not all inputs need to be used
--- running total cannot be -ve or a fraction
+-- Target is a random integer between [101, 999]
+-- Not all inputs need to be used
+-- Running total cannot be -ve or a fraction
 module CountdownMath
 ( countdownRPN
 , operatorPerms
@@ -29,27 +29,32 @@ solveRPN = head . foldl foldingFunction [] . words
           foldingFunction xs "sum" = [sum xs]
           foldingFunction xs numberString = read numberString:xs
 
--- for our purposes we want just the 1st 4 operators, and we want our evaluation to fail if the value
--- on the top of the stack becomes either negative or a fraction
+-- For our purposes we want:
+--   Just the 1st 4 operators
+--   Evaluation to fail if the value on the top of the stack becomes either negative or a fraction
+--   Evaluation to fail for invalid RPN strings
 -- As our inputs for this are always from the lists above we do not need to worry about:
---   addition resulting in a negative
---   multiplication resulting in a negative
+--   Addition resulting in a negative
+--   Multiplication resulting in a negative
 -- Therefore the calculations that can fail are:
---   division by zero (this is covered by not allowing subtraction of equal numbers)
---   division resulting in a fraction
---   subtraction resulting in a negative
+--   Division by zero (this is covered by not allowing subtraction of equal numbers)
+--   Division resulting in a fraction
+--   Subtraction resulting in a negative
 countdownRPN :: String -> Maybe Int
 countdownRPN = fmap head . (foldl foldingFunction (Just [])) . words
     where foldingFunction :: Maybe [Int] -> String -> Maybe [Int]
+          -- Accumulator is Nothing - the calculation has already failed
           foldingFunction Nothing _ = Nothing
+          -- Operator cannot be the 1st or 2nd element of an RPN string
           foldingFunction (Just []) "*" = Nothing
           foldingFunction (Just []) "+" = Nothing
           foldingFunction (Just []) "-" = Nothing
           foldingFunction (Just []) "/" = Nothing
-          foldingFunction (Just [x]) "*" = Nothing
-          foldingFunction (Just [x]) "+" = Nothing
-          foldingFunction (Just [x]) "-" = Nothing
-          foldingFunction (Just [x]) "/" = Nothing
+          foldingFunction (Just x:[]) "*" = Nothing
+          foldingFunction (Just x:[]) "+" = Nothing
+          foldingFunction (Just x:[]) "-" = Nothing
+          foldingFunction (Just x:[]) "/" = Nothing
+          -- Dealing with valid RPN strings from here
           foldingFunction (Just (x:y:ys)) "*" = Just ((x * y):ys)
           foldingFunction (Just (x:y:ys)) "+" = Just ((x + y):ys)
           foldingFunction (Just (x:y:ys)) "-" = if y > x then Just ((y - x):ys) else Nothing
