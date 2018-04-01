@@ -50,10 +50,10 @@ countdownRPN = fmap head . (foldl foldingFunction (Just [])) . words
           foldingFunction (Just []) "+" = Nothing
           foldingFunction (Just []) "-" = Nothing
           foldingFunction (Just []) "/" = Nothing
-          foldingFunction (Just x:[]) "*" = Nothing
-          foldingFunction (Just x:[]) "+" = Nothing
-          foldingFunction (Just x:[]) "-" = Nothing
-          foldingFunction (Just x:[]) "/" = Nothing
+          foldingFunction (Just [x]) "*" = Nothing
+          foldingFunction (Just [x]) "+" = Nothing
+          foldingFunction (Just [x]) "-" = Nothing
+          foldingFunction (Just [x]) "/" = Nothing
           -- Dealing with valid RPN strings from here
           foldingFunction (Just (x:y:ys)) "*" = Just ((x * y):ys)
           foldingFunction (Just (x:y:ys)) "+" = Just ((x + y):ys)
@@ -61,6 +61,10 @@ countdownRPN = fmap head . (foldl foldingFunction (Just [])) . words
           foldingFunction (Just (x:y:ys)) "/" = if y `mod` x == 0 then Just ((y `div` x):ys) else Nothing
           foldingFunction (Just xs) numberString = Just ((read numberString :: Int):xs)
 
+-- Solution 1:
+-- Produce all possible ways of combining the numbers with the operators into a string then use our RPN
+-- evaluation function to select the RPN string that produces the result we want.
+--
 -- Countdown maths problem doesn't require all the numbers are used.  The minimum we can use is 2.
 -- We need to also consider all the combinations of not all the tiles being used.
 allRPNs :: [String] -> [String]
@@ -73,6 +77,28 @@ rpnPermutations tiles = concat (fmap (combineOpsAndTiles tiles) (operatorPerms .
 combineOpsAndTiles :: [String] -> String -> [String]
 combineOpsAndTiles tiles ops = fmap unwords . permutations $ (tiles ++ (words ops))
 
+-- From that list we want the string that produces the first successful calculation that has the value of our target.
+getASolution :: [String] -> Int -> String
+getASolution tiles target = head . getAllSolutions tiles $ target
+
+getAllSolutions :: [String] -> Int -> [String]
+getAllSolutions tiles target = [rpn | rpn <- allRPNs tiles, countdownRPN rpn == Just target]
+
+-- Solution 2:
+-- The problem with the set of functions above is that they're just not performant.  Alongside valid RPN strings
+-- a huge number of invalid strings are also produced.
+-- We want a new version of rpnPermutations that only produces valid RPNs.
+-- To start with we can just look at the ordering of numbers and operators.
+-- An RPN is valid if, counting from the left the number the number of numbers is greater than the number of operators
+-- at each position.
+-- We want a function that takes in a list of tiles and produces a list of all the valid RPN strings with the
+-- operators inserted in.
+rpnPermutations' :: [String] -> [String]
+rpnPermutations' tiles =
+
+
+
+-- Generally useful functions.
 -- operatorPerms. Given a number we want to produce every combination of +,-,*,/ that is that number long minus 1.
 -- As we know this number will be between 2 and 6, we can be lazy
 operatorPerms :: Int -> [String]
@@ -92,10 +118,5 @@ operatorPerms x
 addSpaces :: [String] -> [String]
 addSpaces = map (++" ")
 
--- From that list we want the string that produces the first successful calculation that has the value of our target.
-getASolution :: [String] -> Int -> String
-getASolution tiles target = head . getAllSolutions tiles $ target
-
-getAllSolutions :: [String] -> Int -> [String]
-getAllSolutions tiles target = [rpn | rpn <- allRPNs tiles, countdownRPN rpn == Just target]
+addTileToRPN tile RPN = RPN ++ " " ++ tile
 
