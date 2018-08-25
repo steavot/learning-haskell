@@ -4,6 +4,9 @@
 -- Target is a random integer between [101, 999]
 -- Not all inputs need to be used
 -- Running total cannot be -ve or a fraction
+--
+-- This solution works, but is VERY SLOW!
+--
 module CountdownMath
 ( countdownRPN
 , operatorPerms
@@ -45,24 +48,21 @@ countdownRPN = fmap head . (foldl foldingFunction (Just [])) . words
     where foldingFunction :: Maybe [Int] -> String -> Maybe [Int]
           -- Accumulator is Nothing - the calculation has already failed
           foldingFunction Nothing _ = Nothing
-          -- Operator cannot be the 1st or 2nd element of an RPN string
-          foldingFunction (Just []) "*" = Nothing
-          foldingFunction (Just []) "+" = Nothing
-          foldingFunction (Just []) "-" = Nothing
-          foldingFunction (Just []) "/" = Nothing
-          foldingFunction (Just x:[]) "*" = Nothing
-          foldingFunction (Just x:[]) "+" = Nothing
-          foldingFunction (Just x:[]) "-" = Nothing
-          foldingFunction (Just x:[]) "/" = Nothing
-          -- Dealing with valid RPN strings from here
+          -- Dealing with the stack having two or more numbers on
           foldingFunction (Just (x:y:ys)) "*" = Just ((x * y):ys)
           foldingFunction (Just (x:y:ys)) "+" = Just ((x + y):ys)
           foldingFunction (Just (x:y:ys)) "-" = if y > x then Just ((y - x):ys) else Nothing
           foldingFunction (Just (x:y:ys)) "/" = if y `mod` x == 0 then Just ((y `div` x):ys) else Nothing
-          foldingFunction (Just xs) numberString = Just ((read numberString :: Int):xs)
+          -- The cases where we have two or more numbers on the stack and an operator
+          -- are now covered. So if we examine the case of our stack and a string it
+          -- can either be a single element in the stack with a operator, fail, or
+          -- that we're adding another int to the stack.
+          foldingFunction (Just xs) string
+            -- Dealing with the stack only having one number on
+            | string `elem` ["+", "-", "*", "/"] = Nothing
+            | otherwise = Just ((read string :: Int):xs)
 
 -- Countdown maths problem doesn't require all the numbers are used.  The minimum we can use is 2.
--- We need to also consider all the combinations of not all the tiles being used.
 allRPNs :: [String] -> [String]
 allRPNs tiles = nub . concat . fmap rpnPermutations . tileCombines $ tiles
   where tileCombines tiles = sortWith length [t | t <- subsequences tiles, length t > 1]
