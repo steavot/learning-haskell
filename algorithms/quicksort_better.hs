@@ -21,4 +21,4 @@ qs seq = do
   let (smaller, bigger) = S.partition (<=pivot) (S.deleteAt pivotAt seq)
   below <- qs smaller
   above <- qs bigger
-  return $ (<>) smaller $ pivot S.<| bigger
+  return $ (<>) below $ pivot S.<| above
